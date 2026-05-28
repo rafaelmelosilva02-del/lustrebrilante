@@ -1,11 +1,170 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>SpikeTrainer - Treino de Corte</title>
+    <style>
+        /* Estilização moderna da página (CSS) */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0f111a;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+            font-size: 24px;
+            color: #ffcc00;
+        }
+
+        p {
+            color: #a4b0be;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        /* Container do aplicativo simulando um celular */
+        #app-container {
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #2f3542;
+        }
+
+        canvas {
+            display: block;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 
+    <h1>SpikeTrainer 🏐</h1>
+    <p>Toque na tela no momento certo para simular a cortada!</p>
+
+    <div id="app-container">
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+    </div>
+
+    <script>
+        // Lógica do aplicativo (JavaScript)
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Variáveis do jogo
+        let bolaY = 50;
+        let bolaX = 200;
+        let raioBola = 20;
+        let velocidadeBola = 4;
+        let jogando = true;
+        let feedbackTexto = "Clique para cortar!";
+        let corFeedback = "#ffffff";
+        const alturaRede = 450;
+
+        // Loop principal de renderização
+        function desenhar() {
+            // 1. Limpar a tela e desenhar o fundo
+            ctx.fillStyle = '#1a1c2e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 2. Desenhar a Rede de Vôlei
+            ctx.strokeStyle = '#ffcc00';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(0, alturaRede);
+            ctx.lineTo(canvas.width, alturaRede);
+            ctx.stroke();
+
+            // Texto da Rede
+            ctx.fillStyle = '#ffcc00';
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText("ALTURA DA REDE", 20, alturaRede - 10);
+
+            // 3. Atualizar e Desenhar a Bola
+            if (jogando) {
+                bolaY += velocidadeBola;
+
+                // Se passar direto sem clique
+                if (bolaY > canvas.height) {
+                    bolaY = 50;
+                    feedbackTexto = "Muito tarde! A bola caiu.";
+                    corFeedback = "#ff4757";
+                }
+            }
+
+            // Desenhar o círculo da bola
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(bolaX, bolaY, raioBola, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Linha interna estética da bola de vôlei
+            ctx.beginPath();
+            ctx.arc(bolaX - 10, bolaY, 20, 0, Math.PI * 0.5);
+            ctx.stroke();
+
+            // 4. Painel de Feedback
+            ctx.fillStyle = corFeedback;
+            ctx.font = 'bold 20px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(feedbackTexto, canvas.width / 2, 520);
+
+            // Subtexto de instrução
+            ctx.fillStyle = '#a4b0be';
+            ctx.font = '14px sans-serif';
+            ctx.fillText(jogando ? "CORTE AGORA!" : "Clique para tentar de novo", canvas.width / 2, 560);
+
+            // Chama o próximo frame de animação
+            requestAnimationFrame(desenhar);
+        }
+
+        // Evento de Clique / Toque na tela (O comando do Corte)
+        canvas.addEventListener('mousedown', function() {
+            if (!jogando) {
+                // Reinicia o round
+                bolaY = 50;
+                feedbackTexto = "Clique para cortar!";
+                corFeedback = "#ffffff";
+                jogando = true;
+                return;
+            }
+
+            // Verificação de timing baseada na posição Y da bola
+            // Zona perfeita: pouco antes de chegar na rede (entre 380 e 440 pixels)
+            if (bolaY >= 380 && bolaY <= 440) {
+                feedbackTexto = "💥 CORTE PERFEITO! Na linha!";
+                corFeedback = "#2ed573"; // Verde
+            } 
+            // Clicou muito cedo
+            else if (bolaY >= 280 && bolaY < 380) {
+                feedbackTexto = "⚠️ Muito cedo! Parou no bloqueio.";
+                corFeedback = "#ffa502"; // Laranja
+            } 
+            // Errou feio o tempo
+            else {
+                feedbackTexto = "❌ Errou o tempo da bola!";
+                corFeedback = "#ff4757"; // Vermelho
+            }
+
+            jogando = false; // Pausa o jogo para mostrar o resultado
+        });
+
+        // Inicia o app
+        desenhar();
+    </script>
 </body>
 </html>
